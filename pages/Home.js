@@ -1,5 +1,5 @@
 import { SafeAreaView, Text, StyleSheet, View } from "react-native";
-import { useCollection, useDocument, } from "react-firebase-hooks/firestore";
+import { useCollection, useDocument } from "react-firebase-hooks/firestore";
 
 import {
   doc,
@@ -13,14 +13,23 @@ import {
   getDocs,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../firebase-config";
+import { db, auth } from "../firebase-config";
 import FormTextInput from "../components/FormTextInput";
-import { ActivityIndicator, Button, HelperText, Snackbar, TextInput } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  HelperText,
+  IconButton,
+  Snackbar,
+  TextInput,
+} from "react-native-paper";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { setDoc } from "firebase/firestore";
 import { useState } from "react";
 import Dashboard from "../components/Dashboard";
+import { signOut } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const validationSchema = yup.object().shape({
   familyId: yup.string().required("Family ID is required"),
@@ -33,52 +42,49 @@ const validationSchema2 = yup.object().shape({
 export default function Home({ navigation, route }) {
   const { userID } = route.params;
   const userId = JSON.parse(userID).uid;
-  const [snack, setSnack] = useState(false)
+  const [snack, setSnack] = useState(false);
   const [userData, loading, error] = useDocument(doc(db, "users", userId), {
     snapshotListenOptions: { includeMetadataChanges: false },
   });
-  const [req, setReq] = useState(false)
+  const [req, setReq] = useState(false);
 
   const handleRequest = async (values, actions) => {
-
-    
     // Handle form submission here
 
     // console.log(values);
 
-    try{
-        const q  = await getDocs(query(
-            collection(db, "families"),
-            where("familyName", "==", values.familyId)
-          ));
-        //   q.forEach((doc) => {
-        //     console.log(doc.id)
-        //   })
-          if(q.docs.length === 0){
-            actions.setFieldError("familyId", "Family does not exist, Family names are case and space sensitive");
-         } else if(q.docs.length === 1){
-            // console.log(q.docs[0].id)
-            await addDoc(collection(db, `families/${q.docs[0].id}/requests`), {
-                userId: userId,
-                username: userData.data().username,
-                email: userData.data().email,
-                status: "pending",
-                created: Timestamp.now(),
-            })
-            setSnack(true)
-            setReq(true)
-
-         }else{
-            setFieldError("familyId", "Something went wrong, try again")
-         }
-
-
-    }catch(e){
-        console.log(e);
-    
+    try {
+      const q = await getDocs(
+        query(
+          collection(db, "families"),
+          where("familyName", "==", values.familyId)
+        )
+      );
+      //   q.forEach((doc) => {
+      //     console.log(doc.id)
+      //   })
+      if (q.docs.length === 0) {
+        actions.setFieldError(
+          "familyId",
+          "Family does not exist, Family names are case and space sensitive"
+        );
+      } else if (q.docs.length === 1) {
+        // console.log(q.docs[0].id)
+        await addDoc(collection(db, `families/${q.docs[0].id}/requests`), {
+          userId: userId,
+          username: userData.data().username,
+          email: userData.data().email,
+          status: "pending",
+          created: Timestamp.now(),
+        });
+        setSnack(true);
+        setReq(true);
+      } else {
+        setFieldError("familyId", "Something went wrong, try again");
+      }
+    } catch (e) {
+      console.log(e);
     }
-
-    
   };
 
   const createFamily = async (values, actions) => {
@@ -123,11 +129,28 @@ export default function Home({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.androidSafeArea}>
-      {userData && (
+      {userData?.data().username && (
         <View style={styles.page}>
           <Text style={{ padding: 20, color: "#5640DA", fontSize: 20 }}>
-            Welcome, {userData.data().username}!
+            Welcome, {userData.data().username}
           </Text>
+          <IconButton
+            icon={"logout"}
+            onPress={async () => {
+              try {
+                // Add any additional logout logic here (e.g., sign out from Firebase)
+
+                await signOut(auth);
+                await AsyncStorage.clear();
+                // Navigate to your sign-in screen or any other appropriate screen
+                // For example, if you're using React Navigation, you can navigate like this:
+                // navigation.navigate('SignIn');
+              } catch (error) {
+                console.error("Error while logging out:", error);
+                // Handle any logout errors as needed
+              }
+            }}
+          />
 
           {userData.data().familyId == null && (
             <View style={styles.body}>
@@ -187,74 +210,75 @@ export default function Home({ navigation, route }) {
 
               {!req && <Text style={styles.headText}>Or Create a new one</Text>}
 
-             {!req && <View>
-                <Formik
-                  initialValues={{ familyName: "" }}
-                  validationSchema={validationSchema2}
-                  onSubmit={createFamily}
-                >
-                  {({
-                    handleChange,
-                    handleBlur,
-                    handleSubmit,
-                    values,
-                    errors,
-                    touched,
-                  }) => (
-                    <View>
-                      <View
-                        style={{
-                          width: "90%",
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 10,
-                        }}
-                      >
-                        <View style={{ width: "80%" }}>
-                          <TextInput
-                            label={"Choose a Family name"}
-                            value={values.familyName}
-                            outlineColor={"#5640DA"}
-                            selectionColor={"#5640DA"}
-                            autoCapitalize="none"
-                            onChangeText={handleChange("familyName")}
-                            mode="outlined"
-                          />
-                        </View>
+              {!req && (
+                <View>
+                  <Formik
+                    initialValues={{ familyName: "" }}
+                    validationSchema={validationSchema2}
+                    onSubmit={createFamily}
+                  >
+                    {({
+                      handleChange,
+                      handleBlur,
+                      handleSubmit,
+                      values,
+                      errors,
+                      touched,
+                    }) => (
+                      <View>
+                        <View
+                          style={{
+                            width: "90%",
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
+                          <View style={{ width: "80%" }}>
+                            <TextInput
+                              label={"Choose a Family name"}
+                              value={values.familyName}
+                              outlineColor={"#5640DA"}
+                              selectionColor={"#5640DA"}
+                              autoCapitalize="none"
+                              onChangeText={handleChange("familyName")}
+                              mode="outlined"
+                            />
+                          </View>
 
-                        <View>
-                          <Button mode="contained" onPress={handleSubmit}>
-                            Create
-                          </Button>
+                          <View>
+                            <Button mode="contained" onPress={handleSubmit}>
+                              Create
+                            </Button>
+                          </View>
                         </View>
+                        {errors.familyName && touched.familyName && (
+                          <HelperText type="error">
+                            {errors.familyName}
+                          </HelperText>
+                        )}
                       </View>
-                      {errors.familyName && touched.familyName && (
-                        <HelperText type="error">
-                          {errors.familyName}
-                        </HelperText>
-                      )}
-                    </View>
-                  )}
-                </Formik>
-              </View>}
+                    )}
+                  </Formik>
+                </View>
+              )}
 
               <ActivityIndicator animating={req} color={"#5640DA"} />
             </View>
-
-           
           )}
 
           {userData.data().familyId && (
-            <Dashboard userData={userData.data()} userId={userId}/>)}
+            <Dashboard userData={userData.data()} userId={userId} />
+          )}
         </View>
       )}
-       <Snackbar
+      <Snackbar
         visible={snack}
-        onDismiss={()=>setSnack(false)}
+        onDismiss={() => setSnack(false)}
         duration={1000}
-        >
-       Request sent successfully! 
+      >
+        Request sent successfully!
       </Snackbar>
     </SafeAreaView>
   );

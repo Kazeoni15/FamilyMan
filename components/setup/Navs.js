@@ -41,12 +41,7 @@ const screenOptions = {
 
         
         <Stack.Screen name="home" component={Home} initialParams={{ userID: userID }} />
-        {/* <Stack.Screen name="settings" component={Settings} />
-        <Stack.Screen name="create-poll" component={CreatePoll}/>
-        <Stack.Screen name="drafts" component={Drafts}/>
-        <Stack.Screen name="myvotes" component={YourVotes}/>
-        <Stack.Screen name='edit' options={({ route }) => ({ title: `Edit Poll #${route.params.pollId}` })} component={EditPoll}/>
-        <Stack.Screen name='poll' options={({ route }) => ({ title: `Edit Poll #${route.params.pollId}` })} component={Poll}/> */}
+        
       </Stack.Navigator>
     </NavigationContainer>
 
@@ -69,3 +64,14 @@ const screenOptions = {
       </Stack.Navigator>
     </NavigationContainer>
   )};
+
+
+
+
+
+  {/* <Stack.Screen name="settings" component={Settings} />
+        <Stack.Screen name="create-poll" component={CreatePoll}/>
+        <Stack.Screen name="drafts" component={Drafts}/>
+        <Stack.Screen name="myvotes" component={YourVotes}/>
+        <Stack.Screen name='edit' options={({ route }) => ({ title: `Edit Poll #${route.params.pollId}` })} component={EditPoll}/>
+        <Stack.Screen name='poll' options={({ route }) => ({ title: `Edit Poll #${route.params.pollId}` })} component={Poll}/> */}

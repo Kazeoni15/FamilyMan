@@ -37,8 +37,9 @@ export default function Dashboard({ userData, userId }) {
     }
   }
   const decline = async (request) => {
+    console.log(request.id)
     try {
-        await deleteDoc(doc(db, `families/${userData.familyData}/requests/${request.id}`));
+        await deleteDoc(doc(db, `families/${userData.familyId}/requests/${request.id}`));
     } catch (error) {
         console.log(error)
     }
@@ -46,10 +47,12 @@ export default function Dashboard({ userData, userId }) {
 
   return (
     <View>
-      {familyData?.data()?.admin === userId && (
-        <View style={{ padding: 20 }}>
+   {familyData && <View style={{padding:20}}>
+    <Text style={{ fontSize: 20, fontWeight: "bold" }}>{familyData.data().familyName}</Text>
+    {familyData?.data()?.admin === userId && (
+        <View style={{ paddingVertical: 20 }}>
           {requests?.docs.length > 0 && (
-            <View>
+            <View> 
               <Text style={{ color: "#5640DA", fontSize: 15 }}>Requests</Text>
               {requests?.docs.map((request, index) => {
                 return (
@@ -63,7 +66,7 @@ export default function Dashboard({ userData, userId }) {
                     }}
                   >
                     <Text>
-                      {request.data().username} {request.data().status}
+                      {request.data()?.username} {request.data().status}
                     </Text>
                     <IconButton icon="check" onPress={()=>accept(request)}/>
                     <IconButton icon="close" onPress={()=>decline(request)}/>
@@ -76,7 +79,7 @@ export default function Dashboard({ userData, userId }) {
         </View>
       )}
       {members?.docs.length > 0 && (
-        <View style={{ padding: 20 }}>
+        <View style={{ paddingVertical: 20 }}>
           <Text style={{ color: "#5640DA", fontSize: 15 }}>Members</Text>
           {members?.docs.map((member, index) => {
             return (
@@ -91,6 +94,8 @@ export default function Dashboard({ userData, userId }) {
           })}
         </View>
       )}
+    </View>}
+      
     </View>
   );
 }
