@@ -11,25 +11,27 @@ export default function RootNavigation() {
   const [user, setUser] = useState(null);
   const auth = getAuth(app);
 
-  onAuthStateChanged(
-    auth,
-    async (user) => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        const uidObjectStr = await AsyncStorage.getItem("UID");
-        setUserUid(uidObjectStr);
-
-        // console.log('root', uidObjectStr)
-      } else {
-        // User is signed out
-        setUserUid(undefined);  
+  onAuthStateChanged(auth, async (user) => {
+    
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/firebase.User
+      try {
+    
+        setUserUid(user.uid);
+    
+      } catch (e) {
+        // read error
+        console.log("authError: ", e);
       }
+
+      // console.log('root', uidObjectStr)
+    } else {
+      // User is signed out
+      setUserUid(undefined); 
     }
-  );
-
-
+  });
 
   // Render the appropriate stack based on the presence of the UID
-  return userUid ? <SignedInStack userID = {userUid}/> : <SignedOutStack/>;
+  return userUid ? <SignedInStack userID={userUid} /> : <SignedOutStack />;
 }

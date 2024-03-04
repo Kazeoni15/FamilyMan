@@ -28,10 +28,10 @@ const LoginScreen = ({ navigation }) => {
     try{
       const r = await signInWithEmailAndPassword(auth, values.email, values.password)
 
-      console.log(r.user.uid)
+  
       
-      await AsyncStorage.setItem('UID', JSON.stringify({ uid: r.user.uid }));
-      
+      // await AsyncStorage.setItem('UID', JSON.stringify({ uid: r?.user?.uid }));
+      setActivity(false)
 
     } catch (err){
       setActivity(false)
@@ -77,6 +77,7 @@ const LoginScreen = ({ navigation }) => {
             />
 
             <Button
+              loading={activity}
               buttonColor="#5640DA"
               textColor="#fff"
               style={{ marginTop: 10 }}
@@ -85,10 +86,10 @@ const LoginScreen = ({ navigation }) => {
             >
               Login
             </Button>
-            <Button buttonColor="#B9B6DC" mode="text" onPress={handleRegister}>
+            <Button  buttonColor="#B9B6DC" mode="text" onPress={handleRegister}>
               Don't have an account? Register
             </Button>
-            <ActivityIndicator animating={activity} color={"#5640DA"} />
+            {/* <ActivityIndicator animating={activity} color={"#5640DA"} /> */}
           </View>
         )}
       </Formik>

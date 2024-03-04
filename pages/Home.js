@@ -1,5 +1,6 @@
-import { SafeAreaView, Text, StyleSheet, View } from "react-native";
+import { SafeAreaView, Text, heet, View } from "react-native";
 import { useCollection, useDocument } from "react-firebase-hooks/firestore";
+import { element, page } from '../styles/basic'
 
 import {
   doc,
@@ -12,6 +13,7 @@ import {
   getCountFromServer,
   getDocs,
   Timestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import { db, auth } from "../firebase-config";
 import FormTextInput from "../components/FormTextInput";
@@ -26,10 +28,13 @@ import {
 import { Formik } from "formik";
 import * as yup from "yup";
 import { setDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Dashboard from "../components/Dashboard";
 import { signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NavigationContainer } from '@react-navigation/native';
+
+
 
 const validationSchema = yup.object().shape({
   familyId: yup.string().required("Family ID is required"),
@@ -41,14 +46,49 @@ const validationSchema2 = yup.object().shape({
 
 export default function Home({ navigation, route }) {
   const { userID } = route.params;
-  const userId = JSON.parse(userID).uid;
+  
   const [snack, setSnack] = useState(false);
-  const [userData, loading, error] = useDocument(doc(db, "users", userId), {
+  const [userData, loading, error] = useDocument(doc(db, "users", auth?.currentUser?.uid), {
     snapshotListenOptions: { includeMetadataChanges: false },
   });
+  const [reqs, setReqs] = useState([])
   const [req, setReq] = useState(false);
+  const [fam, setFam] = useState(null)
 
-  const handleRequest = async (values, actions) => {
+
+  useEffect(() =>{
+
+    if(userData?.data().familyId === null){
+      const snapshot = onSnapshot(collection(db, 'users', userID, 'requests'), (docs)=>{
+
+        setReqs(docs.docs)
+      
+
+        console.log(docs.docs.length)
+        if(docs.docs.length > 0){
+          setReq(true)
+        } else {
+          setReq(false)
+        }
+      })
+
+      return () => {
+        snapshot()
+      } 
+    } else {
+      setReq(false)
+    
+      return
+    }
+
+
+
+
+  },[reqs, userData])
+ 
+ 
+
+  const handleRequest = async (values, actions) => {  
     // Handle form submission here
 
     // console.log(values);
@@ -70,15 +110,27 @@ export default function Home({ navigation, route }) {
         );
       } else if (q.docs.length === 1) {
         // console.log(q.docs[0].id)
-        await addDoc(collection(db, `families/${q.docs[0].id}/requests`), {
-          userId: userId,
+      const a =  await addDoc(collection(db, `families/${q.docs[0].id}/requests`), {
+          userID: userID,
           username: userData.data().username,
           email: userData.data().email,
           status: "pending",
           created: Timestamp.now(),
+          type: "family-join",
         });
+
+        await setDoc(doc(db, `users/${userID}`, 'requests', a.id), {
+          status: 'pending',
+          created: Timestamp.now(),
+          type: 'family-join',
+          familyId: q.docs[0].id,
+        })
+
+        
+        setFam(values.familyId)
         setSnack(true);
         setReq(true);
+
       } else {
         setFieldError("familyId", "Something went wrong, try again");
       }
@@ -104,20 +156,22 @@ export default function Home({ navigation, route }) {
         const familyRef = collection(db, "families");
 
         const r = await addDoc(familyRef, {
-          admin: userId,
+          admin: userID,
           moderator: null,
           familyName: values.familyName,
           created: Timestamp.now(),
+          pointsCategory: [{tag:'Top', points:20}, {tag:'Mid', points: 15}, {tag:"Low", points: 10}],
+          dailyTaskLimit: 4
         });
 
-        await setDoc(doc(db, "families", r.id, "members", userId), {
+        await setDoc(doc(db, "families", r.id, "members", userID), {
           email: userData.data().email,
           username: userData.data().username,
           points: 0,
           created: Timestamp.now(),
         });
 
-        await updateDoc(doc(db, "users", userId), {
+        await updateDoc(doc(db, "users", userID), {
           familyId: r.id,
           updated: Timestamp.now(),
         });
@@ -126,35 +180,19 @@ export default function Home({ navigation, route }) {
       console.log(e);
     }
   };
-
+ 
   return (
-    <SafeAreaView style={styles.androidSafeArea}>
+    <SafeAreaView style={page.container}>
       {userData?.data().username && (
-        <View style={styles.page}>
-          <Text style={{ padding: 20, color: "#5640DA", fontSize: 20 }}>
-            Welcome, {userData.data().username}
-          </Text>
-          <IconButton
-            icon={"logout"}
-            onPress={async () => {
-              try {
-                // Add any additional logout logic here (e.g., sign out from Firebase)
-
-                await signOut(auth);
-                await AsyncStorage.clear();
-                // Navigate to your sign-in screen or any other appropriate screen
-                // For example, if you're using React Navigation, you can navigate like this:
-                // navigation.navigate('SignIn');
-              } catch (error) {
-                console.error("Error while logging out:", error);
-                // Handle any logout errors as needed
-              }
-            }}
-          />
-
-          {userData.data().familyId == null && (
-            <View style={styles.body}>
-              <Text style={styles.headText}>Please join a Family</Text>
+        <View style={{marginTop: "5%"}}>
+          {/* <Text style={{ padding: 10, color: "#5640DA", fontSize: 20 }}>
+            Welcome, {userData.data().username} 
+          </Text> */}
+          
+ 
+          {userData.data().familyId == null && !req && (
+            <View style={{margin:45}}>
+              <Text >Please join a Family</Text>
 
               <View>
                 <Formik
@@ -195,7 +233,7 @@ export default function Home({ navigation, route }) {
                         </View>
 
                         <View>
-                          <Button mode="contained" onPress={handleSubmit}>
+                          <Button mode="contained" loading={req} onPress={handleSubmit}>
                             Request
                           </Button>
                         </View>
@@ -208,7 +246,7 @@ export default function Home({ navigation, route }) {
                 </Formik>
               </View>
 
-              {!req && <Text style={styles.headText}>Or Create a new one</Text>}
+              {!req && <Text >Or Create a new one</Text>}
 
               {!req && (
                 <View>
@@ -264,54 +302,76 @@ export default function Home({ navigation, route }) {
                 </View>
               )}
 
-              <ActivityIndicator animating={req} color={"#5640DA"} />
+              
+
             </View>
           )}
 
-          {userData.data().familyId && (
-            <Dashboard userData={userData.data()} userId={userId} />
+          {req && <View> 
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            <View style={{...element.container, marginTop:"25%", marginHorizontal:20, }}>
+
+            <Text style={{...element.stats, color:"#fff"}}>Your Request is being reviewed. Please wait..</Text>
+            
+            <ActivityIndicator animating={req} color={"#fff"} />
+
+
+            
+            </View>
+
+
+            <Button
+        style={{ marginVertical: 40 }}
+        icon={"logout"}
+        color={"#5640DA"}
+        onPress={async () => {
+          try {
+            // Add any additional log  out logic here (e.g., sign out from Firebase)
+
+            await signOut(auth);
+
+            // Navigate to your sign-in screen or any other appropriate screen
+            // For example, if you're using React Navigation, you can navigate like this:
+            // navigation.navigate('SignIn');
+          } catch (error) {
+            console.error("Error while logging out:", error);
+            // Handle any logout errors as needed
+          }
+        }}
+      >
+        Logout
+      </Button>
+            
+            
+            </View>}
+
+          {userData?.data().familyId && (
+            <Dashboard userData={userData.data()} userID={userID} navigation={navigation}/>
           )}
+
+          
         </View>
       )}
-      <Snackbar
+      <Snackbar style={{bottom:50}}
         visible={snack}
         onDismiss={() => setSnack(false)}
         duration={1000}
       >
         Request sent successfully!
       </Snackbar>
+
+{/* <BottomNav/> */}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  androidSafeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-
-    paddingTop: Platform.OS === "android" ? 15 : 0,
-  },
-  page: {
-    backgroundColor: "#fff",
-    marginTop: 5,
-    flex: 1,
-    borderRadius: 10,
-    // padding: 15,
-  },
-
-  headText: {
-    fontSize: 20,
-    // fontWeight: 800,
-    textAlign: "center",
-    color: "#5640DA",
-    // paddingTop: 5,
-  },
-  body: {
-    display: "flex",
-
-    gap: 20,
-    // alignItems: "center",
-    paddingTop: "25%",
-    paddingHorizontal: 20,
-  },
-});

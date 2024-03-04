@@ -51,7 +51,8 @@ const validationSchema = Yup.object().shape({
           values.password
         );
 
-        await AsyncStorage.setItem('UID', JSON.stringify({ uid: r.user.uid }));
+        // await AsyncStorage.setItem('UID', JSON.stringify({ uid: r?.user?.uid }));
+      
 
         try {
           await setDoc(doc(db, "users", r.user.uid), {
@@ -138,11 +139,11 @@ const validationSchema = Yup.object().shape({
                 
               />
              
-              <Button  style={{ marginTop: 10 }} buttonColor="#5640DA" textColor="#fff" mode="contained" onPress={handleSubmit}>
+              <Button loading={activity} style={{ marginTop: 10 }} buttonColor="#5640DA" textColor="#fff" mode="contained" onPress={handleSubmit}>
                 Register
               </Button>
 
-              <ActivityIndicator animating={activity} color={"#5640DA"} />
+              {/* <ActivityIndicator animating={activity} color={"#5640DA"} /> */}
 
 
               
@@ -159,12 +160,13 @@ const validationSchema = Yup.object().shape({
       flex:1,
       paddingTop:50,
       alignItems:'center',
+      justifyContent:'center'
       
       
     }, form:{
       display:"flex",
       rowGap:10,
-      marginTop:40,
+      // marginTop:40,
       width:"90%",
   
     }, title: {
@@ -172,8 +174,8 @@ const validationSchema = Yup.object().shape({
       fontSize: 24,
       color: "#5640DA",
       letterSpacing:5,
-      marginBottom: 10,
-      marginTop:30,
+      // marginBottom: 10,
+      
     },
     
   });
