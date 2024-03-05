@@ -33,7 +33,7 @@ const initialValues = {
 const validationSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
   assignee: yup.object(),
-  description: yup.string().max(10),
+  description: yup.string(),
   date: yup.date().required("Date is required"),
   time: yup.date().required("Time is required"),
   datetime: yup.date().required("Time is required"),
@@ -57,7 +57,7 @@ const Form = ({ userID, familyData }) => {
   // console.log(members?.docs.length)
 
   const onSubmit = async (values, actions) => {
-    // console.log(values);
+    console.log(values);
 
     if (dateTimeError == "") {
       try {
@@ -79,21 +79,7 @@ const Form = ({ userID, familyData }) => {
 
         setSnack(true);
         actions.resetForm();
-        // if (payload.assignee !== "") {
-        //   const userTaskUpdate = await updateDoc(
-        //     collection(
-        //       db,
-        //       `families/${familyData.id}/members/7w1gxiv3DEVWBXUX5JYCYK2EGpo2/tasks`
-        //     ),
-        //     {
-        //       title: values.title,
-        //       description: values.description,
-        //       dueDate: values.datetime,
-        //       pointsCategory: values.pointsCategory,
-        //       taskId: res.id,
-        //     }
-        //   );
-        // }
+        
       } catch (e) {
         console.log(e);
       }
@@ -132,6 +118,7 @@ const Form = ({ userID, familyData }) => {
     }
   }, [formik.values.datetime]);
 
+  // console.log(formik.errors)
   // console.log(formik.values.datetime.toLocaleString());
   return (
     <View style={{}}>

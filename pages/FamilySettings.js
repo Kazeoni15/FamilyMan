@@ -29,7 +29,7 @@ const FamilySettingsPage = ({ navigation, userID, familyData }) => {
   initialValues = {
     pointsCategory: familyData.pointsCategory,
     dailyTaskLimit: familyData.dailyTaskLimit,
-    appointModerator: familyData.appointModerator || "",
+    appointModerator: familyData.moderator || "",
   };
 
   const [members, loading, merrors] = useCollection(
@@ -215,7 +215,7 @@ const FamilySettingsPage = ({ navigation, userID, familyData }) => {
               return `${values.appointModerator} `;
             }
           }}
-          defaultButtonText="Appoint Moderator"
+          defaultButtonText={values.appointModerator || 'Appoint Moderator'}
         />
       )}
       {formik.touched.appointModerator && formik.errors.appointModerator && (

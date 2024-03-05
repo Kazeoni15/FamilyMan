@@ -51,9 +51,9 @@ export default function Dashboard({ navigation, userData, userID }) {
           const dueDate = taskData.dueDate.toDate(); // Convert Firestore Timestamp to Date object
 
           // console.log(doc.data().status);
-          if (doc.data().status == "done") {
+          if (doc.data().status == "done" && dueDate.toDateString() === currentDate.toDateString()) {
             don.push(taskData);
-          } else if (dueDate.toDateString() === currentDate.toDateString()) {
+          } else if (dueDate.toDateString() === currentDate.toDateString() && doc.data().status != 'done') {
             tod.push(taskData);
           } else if (dueDate > currentDate) {
             up.push(taskData);
