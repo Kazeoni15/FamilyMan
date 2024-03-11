@@ -103,7 +103,7 @@ export default function TaskDetails({ navigation, route }) {
             </Button>
           )}
 
-          {task.assignee && task.assignee === username && (
+          {task.assignee && task.assignee === username && task.status == 'pending' && (
             <Button
               onPress={async () => {
                 console.log(task);

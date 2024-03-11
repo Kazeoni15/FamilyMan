@@ -122,6 +122,7 @@ const Form = ({ userID, familyData }) => {
   // console.log(formik.values.datetime.toLocaleString());
   return (
     <View style={{}}>
+      <IconButton icon='reload' color="#5640DA" onPress={()=>{formik.resetForm()}}/>
       <ScrollView style={{ padding: 16 }}>
         
           <View style={{}}>
@@ -220,8 +221,9 @@ const Form = ({ userID, familyData }) => {
             {members && (
               <SelectDropdown
                 data={members.docs}
-                onSelect={(selectedAssignee) =>
-                  formik.setFieldValue("assignee", selectedAssignee)
+                onSelect={(selectedAssignee) =>{
+                  console.log(selectedAssignee)
+                  formik.setFieldValue("assignee", selectedAssignee)}
                 }
                 dropdownStyle={{ width: "90%" }}
                 buttonStyle={{
@@ -240,7 +242,13 @@ const Form = ({ userID, familyData }) => {
                   // text to show after item is selected
                   // console.log(selectedItem)
 
-                  return `${selectedItem.data().username} `;
+                  if(formik.values.assignee){
+                    return `${formik.values.assignee.data().username}`
+                  } else {
+                    return "Select Assignee"
+                  }
+
+                  // return `${formik?.values?.assignee?.data()?.username } `  || 'Select Assignee';
                 }}
                 defaultButtonText="Select Assignee"
               />
@@ -274,7 +282,13 @@ const Form = ({ userID, familyData }) => {
               }
               buttonTextAfterSelection={(selectedItem, index) => {
                 // text to show after item is selected
-                return selectedItem.tag;
+                
+                if(formik.values.pointsCategory){
+                  return `${formik.values.pointsCategory.tag}`
+                } else {
+                  return "Select Points Category"
+                }
+                // return `${formik?.values?.pointsCategory?.tag } `  || 'Select Points Category';
               }}
               defaultButtonText="Select Points Category"
             />

@@ -116,7 +116,14 @@ const RequestsPage = ({
                           color="#fff"
                         />
                         <IconButton
-                          onPress={async () => {}}
+                          onPress={async () => {
+                            deleteDoc(
+                              doc(
+                                db,
+                                `families/${userData.familyId}/requests/${request.id}`
+                              )
+                            );
+                          }}
                           icon="close"
                           color="#fff"
                         />
@@ -360,6 +367,12 @@ const RequestsPage = ({
                         <IconButton
                           onPress={async () => {
                             try {
+                              deleteDoc(
+                                doc(
+                                  db,
+                                  `families/${userData.familyId}/requests/${request.id}`
+                                )
+                              );
                              
                             } catch (error) {
                               console.log(error);
@@ -439,7 +452,12 @@ const RequestsPage = ({
                         <IconButton
                           onPress={async () => {
                             try {
-                             
+                              deleteDoc(
+                                doc(
+                                  db,
+                                  `families/${userData.familyId}/requests/${request.id}`
+                                )
+                              );
                             } catch (error) {
                               console.log(error);
                             }

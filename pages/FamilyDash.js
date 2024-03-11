@@ -55,9 +55,7 @@ const FamilyDash = ({ navigation, userID, familyData }) => {
                 <View>
                   <Text style={userDet.data}>Points {memberData.points}</Text>
                 </View>
-                <View>
-                  <Text style={userDet.data}>Points {memberData.points}</Text>
-                </View>
+                
               </View>
             </View>
           );
