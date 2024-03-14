@@ -4,7 +4,7 @@ import { useCollection, useDocument } from "react-firebase-hooks/firestore";
 import { db } from "../firebase-config";
 import { ScrollView, View, Image } from "react-native";
 import { Text, Icon, IconButton, Divider, HelperText } from "react-native-paper";
-import { details, element, page, userDet } from "../styles/basic";
+import { details, element, page, userDet, rewards } from "../styles/basic";
 
 const FamilyDash = ({ navigation, userID, familyData }) => {
   //   console.log('fam',familyData);
@@ -24,7 +24,7 @@ const FamilyDash = ({ navigation, userID, familyData }) => {
 
           return (
             <View key={index} style={element.container}>
-              <View style={{ ...element.flex2, alignItems: "center" }}>
+              <View style={{ ...rewards.flexSB, alignItems: "center" }}>
                 {memberData.avatar ? (
                   <Image
                   source={{ uri: memberData.avatar.url }}
@@ -33,7 +33,7 @@ const FamilyDash = ({ navigation, userID, familyData }) => {
                 ) : (
                   <IconButton icon="account-circle" color={"#fff"} size={40} />
                 )}
-                <View>
+                <View style={{ maxWidth:"85%"}}>
                
                   {memberData.firstname && memberData.lastname && 
                     <Text  style={userDet.name}> {memberData.firstname} {memberData.lastname} </Text>

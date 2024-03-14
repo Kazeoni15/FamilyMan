@@ -76,7 +76,7 @@ const validationSchema = Yup.object().shape({
           console.log(err);
         }
       } catch (err) {
-        console.log(err)
+        console.log(err, 'line79')
         setActivity(false)
         switch (err.code) {
           case "existing-username":
@@ -85,6 +85,8 @@ const validationSchema = Yup.object().shape({
           case "auth/weak-passwork":
             actions.setFieldError("password", "Password too weak");
             break;
+           case "auth/email-already-in-use":
+            actions.setFieldError("email", "Email already in use"); 
           default:
             actions.setFieldError(
               "confirm-password",
@@ -97,7 +99,8 @@ const validationSchema = Yup.object().shape({
       };
       
      
-  
+
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>FamilyMan</Text>
@@ -106,7 +109,10 @@ const validationSchema = Yup.object().shape({
           validationSchema={validationSchema}
           onSubmit={(values, actions) => handleRegister(values, actions)}
         >
-          {({ handleChange, handleSubmit, values, errors, touched }) => (
+          {({ handleChange, handleSubmit, values, errors, touched }) => {  
+            
+            // console.log(errors)
+            return(
             <View style={styles.form}>
               <FormTextInput
                 label="Email"
@@ -119,7 +125,7 @@ const validationSchema = Yup.object().shape({
                 label="Username"
                 value={values.username}
                 onChangeText={handleChange('username')}
-                error={touched.email && errors.username}
+                error={touched.username && errors.username}
                 autoCapitalize="none"
               />
               <FormTextInput
@@ -148,7 +154,7 @@ const validationSchema = Yup.object().shape({
 
               
             </View>
-          )}
+          )}}
         </Formik>
       </View>
     );

@@ -29,7 +29,7 @@ export default function RootNavigation() {
     } else {
       // User is signed out
       setUserUid(undefined); 
-    }
+    } 
   });
 
   // Render the appropriate stack based on the presence of the UID

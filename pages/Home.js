@@ -1,6 +1,6 @@
 import { SafeAreaView, Text, heet, View } from "react-native";
 import { useCollection, useDocument } from "react-firebase-hooks/firestore";
-import { element, page } from '../styles/basic'
+import { element, page } from "../styles/basic";
 
 import {
   doc,
@@ -32,9 +32,7 @@ import { useEffect, useState } from "react";
 import Dashboard from "../components/Dashboard";
 import { signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NavigationContainer } from '@react-navigation/native';
-
-
+import { NavigationContainer } from "@react-navigation/native";
 
 const validationSchema = yup.object().shape({
   familyId: yup.string().required("Family ID is required"),
@@ -46,49 +44,45 @@ const validationSchema2 = yup.object().shape({
 
 export default function Home({ navigation, route }) {
   const { userID } = route.params;
-  
+
   const [snack, setSnack] = useState(false);
-  const [userData, loading, error] = useDocument(doc(db, "users", auth?.currentUser?.uid), {
-    snapshotListenOptions: { includeMetadataChanges: false },
-  });
-  const [reqs, setReqs] = useState([])
+  const [userData, loading, error] = useDocument(
+    doc(db, "users", auth?.currentUser?.uid),
+    {
+      snapshotListenOptions: { includeMetadataChanges: false },
+    }
+  );
+  const [reqs, setReqs] = useState([]);
   const [req, setReq] = useState(false);
-  const [fam, setFam] = useState(null)
+  const [fam, setFam] = useState(null);
 
+  useEffect(() => {
+    if (userData?.data().familyId === null) {
+      const snapshot = onSnapshot(
+        collection(db, "users", userID, "requests"),
+        (docs) => {
+          setReqs(docs.docs);
 
-  useEffect(() =>{
-
-    if(userData?.data().familyId === null){
-      const snapshot = onSnapshot(collection(db, 'users', userID, 'requests'), (docs)=>{
-
-        setReqs(docs.docs)
-      
-
-        console.log(docs.docs.length)
-        if(docs.docs.length > 0){
-          setReq(true)
-        } else {
-          setReq(false)
+          // console.log(docs.docs.length)
+          if (docs.docs.length > 0) {
+            setReq(true);
+          } else {
+            setReq(false);
+          }
         }
-      })
+      );
 
       return () => {
-        snapshot()
-      } 
+        snapshot();
+      };
     } else {
-      setReq(false)
-    
-      return
+      setReq(false);
+
+      return;
     }
+  }, [reqs, userData]);
 
-
-
-
-  },[reqs, userData])
- 
- 
-
-  const handleRequest = async (values, actions) => {  
+  const handleRequest = async (values, actions) => {
     // Handle form submission here
 
     // console.log(values);
@@ -110,27 +104,28 @@ export default function Home({ navigation, route }) {
         );
       } else if (q.docs.length === 1) {
         // console.log(q.docs[0].id)
-      const a =  await addDoc(collection(db, `families/${q.docs[0].id}/requests`), {
-          userID: userID,
-          username: userData.data().username,
-          email: userData.data().email,
+        const a = await addDoc(
+          collection(db, `families/${q.docs[0].id}/requests`),
+          {
+            userID: userID,
+            username: userData.data().username,
+            email: userData.data().email,
+            status: "pending",
+            created: Timestamp.now(),
+            type: "family-join",
+          }
+        );
+
+        await setDoc(doc(db, `users/${userID}`, "requests", a.id), {
           status: "pending",
           created: Timestamp.now(),
           type: "family-join",
+          familyId: q.docs[0].id,
         });
 
-        await setDoc(doc(db, `users/${userID}`, 'requests', a.id), {
-          status: 'pending',
-          created: Timestamp.now(),
-          type: 'family-join',
-          familyId: q.docs[0].id,
-        })
-
-        
-        setFam(values.familyId)
+        setFam(values.familyId);
         setSnack(true);
         setReq(true);
-
       } else {
         setFieldError("familyId", "Something went wrong, try again");
       }
@@ -160,8 +155,12 @@ export default function Home({ navigation, route }) {
           moderator: null,
           familyName: values.familyName,
           created: Timestamp.now(),
-          pointsCategory: [{tag:'Top', points:20}, {tag:'Mid', points: 15}, {tag:"Low", points: 10}],
-          dailyTaskLimit: 4
+          pointsCategory: [
+            { tag: "Top", points: 20 },
+            { tag: "Mid", points: 15 },
+            { tag: "Low", points: 10 },
+          ],
+          dailyTaskLimit: 4,
         });
 
         await setDoc(doc(db, "families", r.id, "members", userID), {
@@ -180,19 +179,18 @@ export default function Home({ navigation, route }) {
       console.log(e);
     }
   };
- 
+
   return (
     <SafeAreaView style={page.container}>
       {userData?.data().username && (
-        <View style={{marginTop: "5%"}}>
+        <View style={{ marginTop: "5%" }}>
           {/* <Text style={{ padding: 10, color: "#5640DA", fontSize: 20 }}>
             Welcome, {userData.data().username} 
           </Text> */}
-          
- 
+
           {userData.data().familyId == null && !req && (
-            <View style={{margin:45}}>
-              <Text >Please join a Family</Text>
+            <View style={{ margin: 45 }}>
+              <Text>Please join a Family</Text>
 
               <View>
                 <Formik
@@ -233,7 +231,11 @@ export default function Home({ navigation, route }) {
                         </View>
 
                         <View>
-                          <Button mode="contained" loading={req} onPress={handleSubmit}>
+                          <Button
+                            mode="contained"
+                            loading={req}
+                            onPress={handleSubmit}
+                          >
                             Request
                           </Button>
                         </View>
@@ -246,7 +248,7 @@ export default function Home({ navigation, route }) {
                 </Formik>
               </View>
 
-              {!req && <Text >Or Create a new one</Text>}
+              {!req && <Text>Or Create a new one</Text>}
 
               {!req && (
                 <View>
@@ -302,67 +304,81 @@ export default function Home({ navigation, route }) {
                 </View>
               )}
 
-              
+             {!req && <Button
+                style={{ marginVertical: 40 }}
+                icon={"logout"}
+                color={"#5640DA"}
+                onPress={async () => {
+                  try {
+                    // Add any additional logout logic here (e.g., sign out from Firebase)
 
+                    await signOut(auth);
+
+                    // Navigate to your sign-in screen or any other appropriate screen
+                    // For example, if you're using React Navigation, you can navigate like this:
+                    // navigation.navigate('SignIn');
+                  } catch (error) {
+                    console.error("Error while logging out:", error);
+                    // Handle any logout errors as needed
+                  }
+                }}
+              >
+                Logout
+              </Button>}
             </View>
           )}
 
-          {req && <View> 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            <View style={{...element.container, marginTop:"25%", marginHorizontal:20, }}>
+          {req && (
+            <View>
+              <View
+                style={{
+                  ...element.container,
+                  marginTop: "25%",
+                  marginHorizontal: 20,
+                }}
+              >
+                <Text style={{ ...element.stats, color: "#fff" }}>
+                  Your Request is being reviewed. Please wait..
+                </Text>
 
-            <Text style={{...element.stats, color:"#fff"}}>Your Request is being reviewed. Please wait..</Text>
-            
-            <ActivityIndicator animating={req} color={"#fff"} />
+                <ActivityIndicator animating={req} color={"#fff"} />
+              </View>
 
+              <Button
+                style={{ marginVertical: 40 }}
+                icon={"logout"}
+                color={"#5640DA"}
+                onPress={async () => {
+                  try {
+                    // Add any additional log  out logic here (e.g., sign out from Firebase)
 
-            
+                    await signOut(auth);
+
+                    // Navigate to your sign-in screen or any other appropriate screen
+                    // For example, if you're using React Navigation, you can navigate like this:
+                    // navigation.navigate('SignIn');
+                  } catch (error) {
+                    console.error("Error while logging out:", error);
+                    // Handle any logout errors as needed
+                  }
+                }}
+              >
+                Logout
+              </Button>
             </View>
-
-
-            <Button
-        style={{ marginVertical: 40 }}
-        icon={"logout"}
-        color={"#5640DA"}
-        onPress={async () => {
-          try {
-            // Add any additional log  out logic here (e.g., sign out from Firebase)
-
-            await signOut(auth);
-
-            // Navigate to your sign-in screen or any other appropriate screen
-            // For example, if you're using React Navigation, you can navigate like this:
-            // navigation.navigate('SignIn');
-          } catch (error) {
-            console.error("Error while logging out:", error);
-            // Handle any logout errors as needed
-          }
-        }}
-      >
-        Logout
-      </Button>
-            
-            
-            </View>}
+          )}
 
           {userData?.data().familyId && (
-            <Dashboard userData={userData.data()} userID={userID} navigation={navigation}/>
+            <Dashboard
+              userData={userData.data()}
+              userID={userID}
+              navigation={navigation}
+            />
           )}
-
-          
         </View>
       )}
-      <Snackbar style={{bottom:50}}
+      <Snackbar
+        style={{ bottom: 50 }}
         visible={snack}
         onDismiss={() => setSnack(false)}
         duration={1000}
@@ -370,8 +386,7 @@ export default function Home({ navigation, route }) {
         Request sent successfully!
       </Snackbar>
 
-{/* <BottomNav/> */}
+      {/* <BottomNav/> */}
     </SafeAreaView>
   );
 }
-
