@@ -335,7 +335,7 @@ const RequestsPage = ({
                             console.log(request);
                             const payload = {
                                 reward:request.reward,
-                                description:request.reward,
+                                description:request.description,
                                 points: request.points,
                                 claimedBy:[],
                                 favoritedBy:[],
